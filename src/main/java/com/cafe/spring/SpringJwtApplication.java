@@ -8,6 +8,7 @@ public class SpringJwtApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(SpringJwtApplication.class, args);
+		System.out.print("oi");
 	}
 
 }
