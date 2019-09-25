@@ -14,7 +14,7 @@ import com.cafe.spring.entities.User;
  *
  */
 @RestController
-@RequestMapping(value="/users")
+@RequestMapping(value="/users/private")
 public class UserEndpoints {
 	/**
 	 * @see Este endpoint mostra todos os clientes
