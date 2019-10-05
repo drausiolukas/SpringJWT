@@ -1,6 +1,6 @@
 package com.cafe.spring.security;
 
-public final class SecurityConstants {
+public final class JWTConstants {
 
     public static final String AUTH_LOGIN_URL = "/login";
 
@@ -14,8 +14,9 @@ public final class SecurityConstants {
     public static final String TOKEN_TYPE = "JWT";
     public static final String TOKEN_ISSUER = "secure-api";
     public static final String TOKEN_AUDIENCE = "secure-app";
+    public static final long EXPIRATION_TIME = 860_000_000;
 
-    private SecurityConstants() {
-        throw new IllegalStateException("Cannot create instance of static util class");
+    private JWTConstants() {
+        throw new IllegalStateException("Erro ao criar a classe estatica SecurityConstants");
     }
 }

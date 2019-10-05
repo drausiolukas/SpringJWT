@@ -47,21 +47,22 @@ public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
     }
 
     private UsernamePasswordAuthenticationToken getAuthentication(HttpServletRequest request) {
-        String token = request.getHeader(SecurityConstants.TOKEN_HEADER);
-        if (!StringUtils.isEmpty(token) && token.startsWith(SecurityConstants.TOKEN_PREFIX)) {
+        String token = request.getHeader(JWTConstants.TOKEN_HEADER);
+        if (!StringUtils.isEmpty(token) && token.startsWith(JWTConstants.TOKEN_PREFIX)) {
             try {
-                byte[] signingKey = SecurityConstants.JWT_SECRET.getBytes();
+                byte[] signingKey = JWTConstants.JWT_SECRET.getBytes();
 
                 Jws<Claims> parsedToken = Jwts.parser()
                     .setSigningKey(signingKey)
-                    .parseClaimsJws(token.replace("Bearer ", ""));
+                    .parseClaimsJws(token.replace(JWTConstants.TOKEN_PREFIX, ""));
 
                 String username = parsedToken
                     .getBody()
                     .getSubject();
 
                 Collection<? extends GrantedAuthority> authorities = ((List<?>) parsedToken.getBody()
-                    .get("rol")).stream()
+                    .get("rol"))
+                	.stream()
                     .map(authority -> new SimpleGrantedAuthority((String) authority))
                     .collect(Collectors.toList());
 

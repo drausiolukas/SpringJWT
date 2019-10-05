@@ -16,8 +16,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.cafe.spring.entities.AccountCredentials;
-import com.fasterxml.jackson.core.JsonParseException;
+import com.cafe.spring.entity.autentication.CustomPersonDetails;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -26,21 +25,18 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.IOException;
 import io.jsonwebtoken.security.Keys;
 
-
-
 public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     private final AuthenticationManager authenticationManager;
 
     public JWTAuthenticationFilter(AuthenticationManager authenticationManager) {
         this.authenticationManager = authenticationManager;
-
-        setFilterProcessesUrl(SecurityConstants.AUTH_LOGIN_URL);
+        setFilterProcessesUrl(JWTConstants.AUTH_LOGIN_URL);
     }
     
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) {
-        AccountCredentials account = null;
+    	CustomPersonDetails account = null;
 		try {
 			account = parseLoginData(request);
 		} catch (java.io.IOException e) {
@@ -53,36 +49,43 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response,
-                                            FilterChain filterChain, Authentication authentication) {
-        User user = ((User) authentication.getPrincipal());
+                                            FilterChain filterChain, Authentication authentication) throws java.io.IOException {
+    	CustomPersonDetails user = (CustomPersonDetails) authentication.getPrincipal();
 
         List<String> roles = user.getAuthorities()
             .stream()
             .map(GrantedAuthority::getAuthority)
             .collect(Collectors.toList());
 
-        byte[] signingKey = SecurityConstants.JWT_SECRET.getBytes();
+        byte[] signingKey = JWTConstants.JWT_SECRET.getBytes();
 
        String token = Jwts.builder()
             .signWith(Keys.hmacShaKeyFor(signingKey), SignatureAlgorithm.HS512)
-            .setHeaderParam("typ", SecurityConstants.TOKEN_TYPE)
-            .setIssuer(SecurityConstants.TOKEN_ISSUER)
-            .setAudience(SecurityConstants.TOKEN_AUDIENCE)
+            .setHeaderParam("typ", JWTConstants.TOKEN_TYPE)
+            .setIssuer(JWTConstants.TOKEN_ISSUER)
+            .setAudience(JWTConstants.TOKEN_AUDIENCE)
             .setSubject(user.getUsername())
             .setExpiration(new Date(System.currentTimeMillis() + 864000000))
             .claim("rol", roles)
             .compact();
 
-        response.addHeader(SecurityConstants.TOKEN_HEADER, SecurityConstants.TOKEN_PREFIX + token);
+     
+       response.addHeader(JWTConstants.TOKEN_HEADER, JWTConstants.TOKEN_PREFIX + token);
+       response.setContentType("application/json");
+       response.setCharacterEncoding("UTF-8");
+       response.getWriter().write(
+               "{\"" + JWTConstants.TOKEN_HEADER + "\":\"" + JWTConstants.TOKEN_PREFIX+token + "\"}"
+       );
+        
     }
     
-    private AccountCredentials parseLoginData(HttpServletRequest request) throws JsonMappingException, java.io.IOException {
+    private CustomPersonDetails parseLoginData(HttpServletRequest request) throws JsonMappingException, java.io.IOException {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            return mapper.readValue(request.getInputStream(), AccountCredentials.class);
+            return mapper.readValue(request.getInputStream(), CustomPersonDetails.class);
         } catch (IOException exception) {
             // Return empty "invalid" login data
-            return new AccountCredentials();
+            return new CustomPersonDetails();
         }
     }
 }
